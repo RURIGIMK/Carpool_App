@@ -13,7 +13,7 @@ class User(db.Model, SerializerMixin):
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
-    email = db.Column(db.String(100), unique=True, nullable=False)
+    email = db.Column(db.String(100), nullable=False)
     _password_hash = db.Column(db.String(128))
     phone_number = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=func.now())
@@ -47,13 +47,13 @@ class User(db.Model, SerializerMixin):
     def validate_password_hash(self, key, password_hash):
         if not password_hash:
             raise ValueError("Password is required.")
-        return True
+        return password_hash
     
     @validates('email')
     def validate_email(self, key, email):
         if '@' not in email:
             raise ValueError("Email format not correct.")
-        return True
+        return email
     
     def __repr__(self):
         return f'<User {self.username}, {self.email}, {self.phone_number}>'
@@ -82,7 +82,13 @@ class Booking(db.Model, SerializerMixin):
     def validate_booking_status(self, key, booking_status):
         if booking_status not in ['pending', 'completed', 'cancelled']:
             raise ValueError("Invalid booking status.")
-        return True
+        return booking_status
+    
+    @validates('payment_status')
+    def validate_payment_status(self, key, payment_status):
+        if payment_status not in ['pending', 'in_progress', 'completed']:
+            raise ValueError("Invalid payment status.")
+        return payment_status
     
 
     def __repr__(self):
@@ -116,12 +122,10 @@ class Ride(db.Model, SerializerMixin):
     def validate_ride_status(self, key, ride_status):
         if ride_status not in ['pending', 'accepted', 'completed', 'cancelled']:
             raise ValueError("Invalid ride status.")
-        return True
+        return ride_status
     
     def __repr__(self):
         return f'<Ride {self.id}, {self.driver_id}>'
-    
-
 
 class Payment(db.Model, SerializerMixin):
     __tablename__ = 'payments'
@@ -143,9 +147,9 @@ class Payment(db.Model, SerializerMixin):
 
     @validates('payment_status')
     def validate_payment_status(self, key, payment_status):
-        if payment_status not in ['pending', 'completed', 'cancelled']:
+        if payment_status not in ['pending', 'in_progress', 'completed']:
             raise ValueError("Invalid payment status.")
-        return True
+        return payment_status
     
     def __repr__(self):
         return f'<Payment {self.id}, {self.booking_id}, {self.user_id}>'
@@ -201,7 +205,7 @@ class Admin(db.Model, SerializerMixin):
     def validate_password_hash(self, key, password_hash):
         if not password_hash:
             raise ValueError("Password is required.")
-        return True
+        return password_hash
     
     def __repr__(self):
         return f'<Admin {self.username}, {self.phone_number}>'
@@ -228,7 +232,7 @@ class Review(db.Model, SerializerMixin):
     def validate_rating(self, key, rating):
         if rating < 1 or rating > 5:
             raise ValueError("Rating must be between 1 and 5.")
-        return True
+        return rating
     
     def __repr__(self):
         return f'<Review {self.id}, {self.user_id}, {self.booking_id}, {self.ride_id}>'

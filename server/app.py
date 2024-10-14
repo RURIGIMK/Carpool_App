@@ -1,24 +1,191 @@
 # !/usr/bin/env python3
-from flask import request, jsonify
+from flask import request, session, jsonify
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
-from config import app, db, api
+from config import app, db, api, bcrypt
+
 from models import User, Booking, Ride, Payment, Review, Vehicle, Admin
 
 @app.route('/', methods=['GET'])
 def home():
     return jsonify({"message": "Welcome to the Carpool API!"}), 200
 
+class CheckSession(Resource):
+    def get(self):
+        # Check for user session
+        user_id = session.get('user_id')
+        if user_id:
+            user = User.query.get(user_id)
+            if user:
+                return user.to_dict(), 200
+
+        # Check for admin session
+        admin_id = session.get('admin_id')
+        if admin_id:
+            admin = Admin.query.get(admin_id)
+            if admin:
+                return jsonify(admin.to_dict()), 200
+
+        # If no valid session found
+        return {"message": "No user logged in"}, 401
+
+        
+
+# Signup Resource  
+class Signup(Resource):
+    def post(self):
+        data = request.get_json()
+
+        if not data['username'] or not data['email'] or not data['password']:
+            return {'message': 'All fields are required.'}, 400
+
+        try:
+            user = User(
+                username=data['username'],
+                email=data['email'],
+                phone_number=data.get('phone_number'),
+                password_hash=bcrypt.generate_password_hash(data['password']).decode('utf-8'),
+                is_driver=data.get('is_driver', False)
+            )
+            db.session.add(user)
+            db.session.commit()
+            return user.to_dict(), 201
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"error": "Username or email already exists"}), 400
+        
+# Login Resource
+class Login(Resource):
+    def post(self):
+        data = request.get_json()
+
+        # Login logic (simplified)
+        admin = Admin.query.filter(Admin.username == data['username']).first()
+        if data['username'] == 'admin':  # Admin login
+            session['admin_id'] = admin.id
+            print(f"Session after admin login: {session}")
+            return admin.to_dict(), 200
+        
+        user = User.query.filter(User.username == data['username']).first()
+        if user:
+            session['user_id'] = user.id
+            print(f"Session after user login: {session}")
+            return user.to_dict(), 200
+
+        return {"message": "Invalid credentials"}, 401
+
+
+       
+# Logout Resource
+class Logout(Resource):
+    def delete(self):
+        session.pop('user_id', None)
+        session.pop('admin_id', None)
+        return {'message': 'Logged out successfully.'}, 200
+    
+
+class SignupAdmin(Resource):
+    def post(self):
+        data = request.get_json()
+
+        if not data['username'] or not data['email'] or not data['password']:
+            return {'message': 'All fields are required.'}, 400
+
+        try:
+            admin = Admin(
+                username=data['username'],
+                email=data['email'],
+                password_hash=bcrypt.generate_password_hash(data['password']).decode('utf-8')
+            )
+            db.session.add(admin)
+            db.session.commit()
+            return jsonify(admin.to_dict()), 201
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"error": "Username or email already exists"}), 400
+        
+
+
+# LoginAdmin Resource
+class LoginAdmin(Resource):
+    def post(self):
+        data = request.get_json()
+
+        if not data['email'] or not data['password']:
+            return {'message': 'Email and password are required.'}, 400
+
+        admin = Admin.query.filter_by(email=data['email']).first()
+        if admin and admin.authenticate(data['password']):
+            session['admin_id'] = admin.id
+            return jsonify(admin.to_dict()), 200
+        else:
+            return {'message': 'Invalid email or password.'}, 401
+
+
+# LogoutAdmin Resource
+class LogoutAdmin(Resource):
+    def delete(self):
+        session.pop('admin_id', None)
+        return {'message': 'Logged out successfully.'}, 200
+    
+        
+
+# Admin Resource
+class AdminResource(Resource):
+    def get(self, admin_id=None):
+        if admin_id:
+            admin = Admin.query.get_or_404(admin_id)
+            return admin.to_dict()
+        else:
+            admins = Admin.query.all()
+            return [admin.to_dict() for admin in admins]
+       
+    def post(self):
+        data = request.get_json()
+        try:
+            admin = Admin(
+                username=data['username'],
+                email=data['email'],
+                password_hash=data['password']
+            )
+            db.session.add(admin)
+            db.session.commit()
+            return jsonify(admin.to_dict()), 201
+        except IntegrityError:
+            db.session.rollback()
+            return jsonify({"error": "Username or email already exists"}), 400
+        
+
+class AdminResourceById(Resource):
+    def get(self, admin_id):
+        admin = Admin.query.get_or_404(admin_id)
+        return admin.to_dict()
+    
+    def patch(self, admin_id):
+        admin = Admin.query.get_or_404(admin_id)
+        data = request.get_json()
+        admin.username = data.get('username', admin.username)
+        admin.email = data.get('email', admin.email)
+        db.session.commit()
+        return admin.to_dict()
+    
+    def delete(self, admin_id):
+        admin = Admin.query.get_or_404(admin_id)
+        db.session.delete(admin)
+        db.session.commit()
+        return {'message': 'Admin deleted successfully.'}, 200
+            
+
 # User Resource
 class UserResource(Resource):
     def get(self, user_id=None):
         if user_id:
             user = User.query.get_or_404(user_id)
-            return jsonify(user.to_dict())
+            return user.to_dict()
         else:
             users = User.query.all()
-            return jsonify([user.to_dict() for user in users])
-
+            return [user.to_dict() for user in users]
+       
     def post(self):
         data = request.get_json()
         try:
@@ -36,14 +203,19 @@ class UserResource(Resource):
             db.session.rollback()
             return jsonify({"error": "Username or email already exists"}), 400
 
-    def put(self, user_id):
+class UserResourceById(Resource):
+    def get(self, user_id):
+        user = User.query.get_or_404(user_id)
+        return user.to_dict()
+    
+    def patch(self, user_id):
         user = User.query.get_or_404(user_id)
         data = request.get_json()
         user.username = data.get('username', user.username)
         user.email = data.get('email', user.email)
         user.phone_number = data.get('phone_number', user.phone_number)
         db.session.commit()
-        return jsonify(user.to_dict())
+        return user.to_dict(), 200
 
     def delete(self, user_id):
         user = User.query.get_or_404(user_id)
@@ -75,7 +247,13 @@ class BookingResource(Resource):
         db.session.commit()
         return jsonify(booking.to_dict()), 201
 
-    def put(self, booking_id):
+
+class BookingResourceById(Resource):
+    def get(self, booking_id):
+        booking = Booking.query.get_or_404(booking_id)
+        return jsonify(booking.to_dict())
+    
+    def patch(self, booking_id):
         booking = Booking.query.get_or_404(booking_id)
         data = request.get_json()
         booking.total_cost = data.get('total_cost', booking.total_cost)
@@ -118,7 +296,13 @@ class RideResource(Resource):
         db.session.commit()
         return jsonify(ride.to_dict()), 201
 
-    def put(self, ride_id):
+
+class RideResourceById(Resource):
+    def get(self, ride_id):
+        ride = Ride.query.get_or_404(ride_id)
+        return jsonify(ride.to_dict())
+    
+    def patch(self, ride_id):
         ride = Ride.query.get_or_404(ride_id)
         data = request.get_json()
         ride.pickup_location = data.get('pickup_location', ride.pickup_location)
@@ -159,7 +343,13 @@ class PaymentResource(Resource):
         db.session.commit()
         return jsonify(payment.to_dict()), 201
 
-    def put(self, payment_id):
+
+class PaymentResourceById(Resource):
+    def get(self, payment_id):
+        payment = Payment.query.get_or_404(payment_id)
+        return jsonify(payment.to_dict())
+    
+    def patch(self, payment_id):
         payment = Payment.query.get_or_404(payment_id)
         data = request.get_json()
         payment.amount = data.get('amount', payment.amount)
@@ -200,7 +390,13 @@ class VehicleResource(Resource):
         db.session.commit()
         return jsonify(vehicle.to_dict()), 201
 
-    def put(self, vehicle_id):
+
+class VehicleResourceById(Resource):
+    def get(self, vehicle_id):
+        vehicle = Vehicle.query.get_or_404(vehicle_id)
+        return jsonify(vehicle.to_dict())
+    
+    def patch(self, vehicle_id):
         vehicle = Vehicle.query.get_or_404(vehicle_id)
         data = request.get_json()
         vehicle.make = data.get('make', vehicle.make)
@@ -241,7 +437,13 @@ class ReviewResource(Resource):
         db.session.commit()
         return jsonify(review.to_dict()), 201
 
-    def put(self, review_id):
+
+class ReviewResourceById(Resource):
+    def get(self, review_id):
+        review = Review.query.get_or_404(review_id)
+        return jsonify(review.to_dict())
+    
+    def patch(self, review_id):
         review = Review.query.get_or_404(review_id)
         data = request.get_json()
         review.rating = data.get('rating', review.rating)
@@ -277,6 +479,12 @@ class AdminResource(Resource):
         db.session.commit()
         return jsonify(admin.to_dict()), 201
 
+
+class AdminResourceById(Resource):
+    def get(self, admin_id):
+        admin = Admin.query.get_or_404(admin_id)
+        return jsonify(admin.to_dict())
+    
     def put(self, admin_id):
         admin = Admin.query.get_or_404(admin_id)
         data = request.get_json()
@@ -290,16 +498,37 @@ class AdminResource(Resource):
         db.session.delete(admin)
         db.session.commit()
         return '', 204
+    
 
+api.add_resource(CheckSession, '/check_session', endpoint='/check_session')
+api.add_resource(Signup, '/signup')
+api.add_resource(Login, '/login')
+api.add_resource(Logout, '/logout')
+api.add_resource(SignupAdmin, '/signup_admin', endpoint='/signup_admin')
+api.add_resource(LoginAdmin, '/login_admin', endpoint='/login_admin')
+api.add_resource(LogoutAdmin, '/logout_admin', endpoint='/logout_admin')
 
-# Register Resources with the API
-api.add_resource(UserResource, '/users', '/users/<int:user_id>')
-api.add_resource(BookingResource, '/bookings', '/bookings/<int:booking_id>')
-api.add_resource(RideResource, '/rides', '/rides/<int:ride_id>')
-api.add_resource(PaymentResource, '/payments', '/payments/<int:payment_id>')
-api.add_resource(VehicleResource, '/vehicles', '/vehicles/<int:vehicle_id>')
-api.add_resource(ReviewResource, '/reviews', '/reviews/<int:review_id>')
-api.add_resource(AdminResource, '/admins', '/admins/<int:admin_id>')
+api.add_resource(UserResource, '/users', endpoint='/users')
+api.add_resource(UserResourceById, '/users/<int:user_id>', endpoint='/users/<int:user_id>')
+
+api.add_resource(BookingResource, '/bookings', endpoint='/bookings')
+api.add_resource(BookingResourceById, '/bookings/<int:booking_id>', endpoint='/bookings/<int:booking_id>')
+
+api.add_resource(RideResource, '/rides', endpoint='/rides')
+api.add_resource(RideResourceById, '/rides/<int:ride_id>', endpoint='/rides/<int:ride_id>')
+
+api.add_resource(PaymentResource, '/payments', endpoint='/payments')
+api.add_resource(PaymentResourceById, '/payments/<int:payment_id>', endpoint='/payments/<int:payment_id>')
+
+api.add_resource(VehicleResource, '/vehicles', endpoint='/vehicles')
+api.add_resource(VehicleResourceById, '/vehicles/<int:vehicle_id>', endpoint='/vehicles/<int:vehicle_id>')
+
+api.add_resource(ReviewResource, '/reviews', endpoint='/reviews')
+api.add_resource(ReviewResourceById, '/reviews/<int:review_id>', endpoint='/reviews/<int:review_id>')
+
+api.add_resource(AdminResource, '/admins', endpoint='/admins')
+api.add_resource(AdminResourceById, '/admins/<int:admin_id>', endpoint='/admins/<int:admin_id>')
+
 
 if __name__ == '__main__':
     app.run(port=5555, debug=True)
