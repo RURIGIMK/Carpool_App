@@ -1,5 +1,5 @@
 # !/usr/bin/env python3
-from flask import request, session, jsonify
+from flask import request, session, jsonify, make_response
 from flask_restful import Resource
 from sqlalchemy.exc import IntegrityError
 from config import app, db, api, bcrypt
@@ -107,19 +107,19 @@ class SignupAdmin(Resource):
 
 
 # LoginAdmin Resource
-class LoginAdmin(Resource):
-    def post(self):
-        data = request.get_json()
+# class LoginAdmin(Resource):
+#     def post(self):
+#         data = request.get_json()
 
-        if not data['email'] or not data['password']:
-            return {'message': 'Email and password are required.'}, 400
+#         if not data['email'] or not data['password']:
+#             return {'message': 'Email and password are required.'}, 400
 
-        admin = Admin.query.filter_by(email=data['email']).first()
-        if admin and admin.authenticate(data['password']):
-            session['admin_id'] = admin.id
-            return jsonify(admin.to_dict()), 200
-        else:
-            return {'message': 'Invalid email or password.'}, 401
+#         admin = Admin.query.filter_by(email=data['email']).first()
+#         if admin and admin.authenticate(data['password']):
+#             session['admin_id'] = admin.id
+#             return jsonify(admin.to_dict()), 200
+#         else:
+#             return {'message': 'Invalid email or password.'}, 401
 
 
 # LogoutAdmin Resource
@@ -367,11 +367,21 @@ class PaymentResourceById(Resource):
 # Vehicle Resource
 class VehicleResource(Resource):
     def get(self, vehicle_id=None):
+        # If a vehicle_id is provided, fetch that specific vehicle
         if vehicle_id:
             vehicle = Vehicle.query.get_or_404(vehicle_id)
             return jsonify(vehicle.to_dict())
         else:
-            vehicles = Vehicle.query.all()
+            # Check if user_id is in query parameters for filtering
+            user_id = request.args.get('user_id')  # Get user_id from query parameters
+            
+            if user_id:
+                # Filter vehicles by user_id if provided
+                vehicles = Vehicle.query.filter_by(user_id=user_id).all()
+            else:
+                # If no user_id, get all vehicles
+                vehicles = Vehicle.query.all()
+
             return jsonify([vehicle.to_dict() for vehicle in vehicles])
 
     def post(self):
@@ -384,12 +394,11 @@ class VehicleResource(Resource):
             plate_number=data['plate_number'],
             seating_capacity=data['seating_capacity'],
             sacco=data.get('sacco'),
-            user_id=data['user_id']
+            user_id=session.get('user_id')  # Assuming user_id is stored in the session
         )
         db.session.add(vehicle)
         db.session.commit()
-        return jsonify(vehicle.to_dict()), 201
-
+        return make_response(jsonify(vehicle.to_dict()), 201)
 
 class VehicleResourceById(Resource):
     def get(self, vehicle_id):
@@ -412,6 +421,7 @@ class VehicleResourceById(Resource):
         db.session.delete(vehicle)
         db.session.commit()
         return '', 204
+
 
 
 # Review Resource
@@ -505,7 +515,7 @@ api.add_resource(Signup, '/signup')
 api.add_resource(Login, '/login')
 api.add_resource(Logout, '/logout')
 api.add_resource(SignupAdmin, '/signup_admin', endpoint='/signup_admin')
-api.add_resource(LoginAdmin, '/login_admin', endpoint='/login_admin')
+# api.add_resource(LoginAdmin, '/login_admin', endpoint='/login_admin')
 api.add_resource(LogoutAdmin, '/logout_admin', endpoint='/logout_admin')
 
 api.add_resource(UserResource, '/users', endpoint='/users')

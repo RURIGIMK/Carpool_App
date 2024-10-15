@@ -11,7 +11,7 @@ function HomePageNotLoggedIn() {
         <p className="text-black mb-6 text-sm sm:text-base">
           Please log in or sign up to book a ride now.
         </p>
-        <Link to="/signup_dashboard">
+        <Link to="/signup">
           <button
             type="signup"
             className="w-full sm:w-40 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-800 transition-colors shadow-sm"

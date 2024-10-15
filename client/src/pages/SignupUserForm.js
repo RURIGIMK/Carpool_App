@@ -1,12 +1,16 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function SignupUserForm({ setUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
+  const [isDriver, setIsDriver] = useState(false); // State to check if user is a driver or not
+  const [isDriverSelected, setIsDriverSelected] = useState(false); // State to check if user is a driver or not
   const [error, setError] = useState(""); // State for error messages
+
+  const navigate = useNavigate();
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -25,6 +29,7 @@ function SignupUserForm({ setUser }) {
         username,
         email,
         password,
+        is_driver: isDriver,
       }),
     })
       .then((response) => {
@@ -32,6 +37,13 @@ function SignupUserForm({ setUser }) {
           response.json().then((user) => {
             setUser(user);
             setError(""); // Clear error message on successful signup
+
+            // Redirect based on whether the user is a driver
+            if (user.is_driver) {
+              navigate("/driverdashboard"); // Redirect to Driver Dashboard
+            } else {
+              navigate("/userdashboard"); // Redirect to User Dashboard
+            }
           });
         } else {
           response.json().then((errorData) => {
@@ -52,9 +64,7 @@ function SignupUserForm({ setUser }) {
             Sign Up
           </h1>
 
-          {error && (
-            <p className="text-red-500 text-center mb-4">{error}</p> // Display error message
-          )}
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
           <div className="mb-4">
             <label
@@ -122,6 +132,29 @@ function SignupUserForm({ setUser }) {
               autoComplete="new-password"
               className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:border-gray-600"
             />
+          </div>
+
+          <div className="flex items-center justify-between mb-4">
+            <label
+              htmlFor="isDriver"
+              className="block text-gray-700 font-semibold mb-2 mr-14"
+            >
+              Sign up as driver
+            </label>
+            {!isDriverSelected && (
+              <select
+                id="isDriver"
+                value={isDriver}
+                onChange={(e) => {
+                  setIsDriver(e.target.value === "true");
+                  // setIsDriverSelected(true); // This will hide the dropdown after selection
+                }}
+                className="w-32 px-4 py-2 border rounded-lg focus:outline-none focus:border-gray-600"
+              >
+                <option value="false">No</option>
+                <option value="true">Yes</option>
+              </select>
+            )}
           </div>
 
           <button

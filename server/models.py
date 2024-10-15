@@ -9,7 +9,7 @@ from config import db, bcrypt
 class User(db.Model, SerializerMixin):
     __tablename__ = 'users'
 
-    serialize_rules= ('-bookings', '-rides', '-reviews', '-payments', '-vehicles',)
+    serialize_rules= ('-rides', '-reviews', '-payments', '-vehicles',)
 
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(50), unique=True, nullable=False)
@@ -164,7 +164,7 @@ class Vehicle(db.Model, SerializerMixin):
     model = db.Column(db.String(50))
     year = db.Column(db.Integer)
     color = db.Column(db.String(50))
-    plate_number = db.Column(db.String(20), unique=True)
+    plate_number = db.Column(db.String(20))
     seating_capacity = db.Column(db.Integer)
     sacco = db.Column(db.String(50))
 

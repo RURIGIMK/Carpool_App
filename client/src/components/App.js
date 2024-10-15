@@ -4,11 +4,11 @@ import NavBar from "./NavBar";
 import DriverDashboard from "../pages/DriverDashboard";
 import Rides from "./Rides";
 import SignupUserForm from "../pages/SignupUserForm";
-import SignupAdminForm from "../pages/SignupAdminForm";
 import Login from "../pages/Login";
 import HomePageNotLoggedIn from "../pages/HomePageNotLoggedIn";
 import Footer from "./Footer";
-import SignupDashboard from "../pages/SignupDashboard";
+import VehicleRegistrationForm from "../pages/VehicleRegistrationForm";
+import UserDashboard from "../pages/UserDashboard";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -35,7 +35,6 @@ function App() {
   //   });
   // }, []);
 
-
   return (
     <div className={darkMode ? "dark" : ""}>
       <NavBar
@@ -55,17 +54,24 @@ function App() {
                     path="/driverdashboard"
                     element={<DriverDashboard />}
                   />
+                  <Route
+                    path="/vehicle-registration"
+                    element={<VehicleRegistrationForm />}
+                  />
+                  <Route path="/rides" element={<Rides rides={rides} />} />
                 </>
               )}
-              <Route path="/rides" element={<Rides rides={rides} />} />
-
+              <Route path="/userdashboard" element={<UserDashboard user={user} />} />
             </>
           ) : (
             <>
-              <Route path="/signup" element={<SignupUserForm setUser={setUser} />} />
+              <Route
+                path="/signup"
+                element={<SignupUserForm setUser={setUser} />}
+              />
               <Route path="/login" element={<Login setUser={setUser} />} />
               <Route
-                path="*"
+                path="/"
                 element={
                   <HomePageNotLoggedIn
                     toggleDarkMode={toggleDarkMode}
@@ -73,12 +79,11 @@ function App() {
                   />
                 }
               />
-              <Route path='signup_dashboard' element={<SignupDashboard setUser={setUser} />}/>
             </>
           )}
         </Routes>
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

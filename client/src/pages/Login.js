@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 function Login({ setUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // State to manage error messages
+
+  const navigate = useNavigate();
 
   function handleSubmit(e) {
     e.preventDefault();
@@ -19,7 +22,13 @@ function Login({ setUser }) {
         if (response.ok) {
           response.json().then((user) => {
             setUser(user);
+            console.log(user)
             setError(""); // Clear error message on successful login
+            if (user.is_driver) {
+              navigate("/driverdashboard"); // Redirect to Driver Dashboard
+            } else {
+              navigate("/userdashboard"); // Redirect to User Dashboard
+            }
           });
         } else {
           response.json().then((errorData) => {
