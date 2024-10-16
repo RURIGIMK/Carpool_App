@@ -18,6 +18,8 @@ class User(db.Model, SerializerMixin):
     phone_number = db.Column(db.String(255), nullable=True)
     created_at = db.Column(db.DateTime, default=func.now())
     is_driver = db.Column(db.Boolean, default=False)
+    image = db.Column(db.String(50))
+    
 
     # relationships
     bookings = db.relationship('Booking', back_populates='user', cascade='all, delete-orphan')
@@ -157,8 +159,6 @@ class Payment(db.Model, SerializerMixin):
 class Vehicle(db.Model, SerializerMixin):
     __tablename__ = 'vehicles'
 
-    serialize_rules= ('-user', '-vehicle')
-
     id = db.Column(db.Integer, primary_key=True)
     make = db.Column(db.String(50))
     model = db.Column(db.String(50))
@@ -167,7 +167,8 @@ class Vehicle(db.Model, SerializerMixin):
     plate_number = db.Column(db.String(20))
     seating_capacity = db.Column(db.Integer)
     sacco = db.Column(db.String(50))
-
+    image = db.Column(db.String(50))
+    
     user_id = db.Column(db.Integer, db.ForeignKey('users.id'))
 
     user = db.relationship('User', back_populates='vehicles')
