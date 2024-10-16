@@ -9,6 +9,7 @@ function VehicleRegistrationForm() {
   const [plateNumber, setPlateNumber] = useState("");
   const [seatingCapacity, setSeatingCapacity] = useState("");
   const [sacco, setSacco] = useState("");
+  const [image, setImage] = useState(""); // State to store the newly registered vehicle
   const [error, setError] = useState(""); // State for error messages
 
   const navigate = useNavigate();
@@ -42,6 +43,7 @@ function VehicleRegistrationForm() {
         plate_number: plateNumber,
         seating_capacity: seatingCapacity,
         sacco,
+        image 
       }),
     })
       .then((response) => {

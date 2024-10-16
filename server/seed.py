@@ -39,7 +39,8 @@ def seed_data():
                     password_hash = bcrypt.generate_password_hash(fake.password(length=12)).decode('utf-8'),
                     phone_number = fake.phone_number(),
                     created_at = fake.date_time_between(start_date=datetime.now() - timedelta(days=30), end_date=datetime.now()),
-                    is_driver = random.choice([True, False])
+                    is_driver = random.choice([True, False]),
+                    image = fake.image_url(width=50, height=50)
                 )
                 db.session.add(user)
                 users.append(user)
@@ -57,7 +58,8 @@ def seed_data():
                     plate_number = fake.license_plate(),
                     seating_capacity = fake.random_int(min=4, max=8),
                     sacco = fake.company(),
-                    user_id = random.choice(users).id
+                    user_id = random.choice(users).id,
+                    image = fake.image_url(width=150, height=200)
                 )
                 db.session.add(vehicle)
                 vehicles.append(vehicle)

@@ -1,18 +1,19 @@
-// UserDashboard.js
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import VehicleCard from "../components/VehicleCard";
-
+import RideCard from "../components/RideCard";
 
 function UserDashboard({ user }) {
   const [vehicles, setVehicles] = useState([]); // State to hold vehicles
+  const [rides, setRides] = useState([]); // State to hold rides
   const [error, setError] = useState(""); // State for error messages
-  const [expandedGroup, setExpandedGroup] = useState(null); // State to track the expanded group
+  const [expandedGroup, setExpandedGroup] = useState(null); // State to track the expanded vehicle group
+  const [expandedRideGroup, setExpandedRideGroup] = useState(null); // State to track the expanded ride group
   const userId = user.id; // This should be set to the current user's ID
 
+  // Fetch vehicles registered to the current user
   useEffect(() => {
-    // Fetch vehicles registered to the current user
-    fetch("/vehicles") // Assume backend API accepts query parameters for filtering
+    fetch("/vehicles")
       .then((response) => {
         if (response.ok) {
           return response.json();
@@ -20,13 +21,29 @@ function UserDashboard({ user }) {
           throw new Error("Failed to fetch vehicles");
         }
       })
-      .then((data) => {
-        setVehicles(data);
-      })
-      .catch((error) => {
-        setError(error.message); // Handle errors appropriately
-      });
+      .then((data) => setVehicles(data))
+      .catch((error) => setError(error.message));
   }, [userId]);
+
+  // Fetch rides from the backend and filter for pending rides
+  useEffect(() => {
+    fetch("/rides")
+      .then((response) => {
+        if (response.ok) {
+          return response.json();
+        } else {
+          throw new Error("Failed to fetch rides");
+        }
+      })
+      .then((data) => {
+        // Filter rides to only include those with a "pending" status
+        const pendingRides = data.filter(
+          (ride) => ride.ride_status === "pending"
+        );
+        setRides(pendingRides);
+      })
+      .catch((error) => setError(error.message));
+  }, []);
 
   // Group vehicles by seating capacity
   const groupedVehicles = vehicles.reduce((acc, vehicle) => {
@@ -38,24 +55,31 @@ function UserDashboard({ user }) {
     return acc;
   }, {});
 
+  // Group rides by pickup location
+  const groupedRides = rides.reduce((acc, ride) => {
+    const location = ride.pickup_location;
+    if (!acc[location]) {
+      acc[location] = [];
+    }
+    acc[location].push(ride);
+    return acc;
+  }, {});
+
   // Toggle the visibility of vehicle cards for a specific group
   const handleGroupToggle = (capacity) => {
     setExpandedGroup((prev) => (prev === capacity ? null : capacity));
   };
 
+  // Toggle the visibility of rides for a specific pickup location
+  const handleRideGroupToggle = (location) => {
+    setExpandedRideGroup((prev) => (prev === location ? null : location));
+  };
+
   return (
-    <div className="flex mt-20 dark:bg-gray-900 h-screen">
+    <div className="flex mt-20 dark:bg-gray-900 h-auto">
       <aside className="w-64 bg-gray-800 text-white p-4">
         <h2 className="text-xl font-bold">User Dashboard</h2>
         <ul className="mt-4">
-          <li>
-            <Link
-              to="/registered-vehicles"
-              className="block py-2 hover:bg-gray-700"
-            >
-              View Registered Vehicles
-            </Link>
-          </li>
           <li>
             <Link to="/rides" className="block py-2 hover:bg-gray-700">
               My Rides
@@ -68,8 +92,8 @@ function UserDashboard({ user }) {
           </li>
         </ul>
       </aside>
-      <main className="flex-1 p-4 bg-gray-100 dark:bg-gray-900">
-        <h1 className="text-2xl font-bold mb-4 dark:text-white">
+      <div className="flex-1 p-4 bg-gray-100 dark:bg-gray-900 h-auto">
+        <h1 className="text-2xl font-bold mb-4 dark:text-white text-center">
           Book Ride by Seating Capacity
         </h1>
         {error && <p className="text-red-500">{error}</p>}{" "}
@@ -96,7 +120,39 @@ function UserDashboard({ user }) {
         ) : (
           <p>No vehicles registered yet.</p>
         )}
-      </main>
+        <div>
+          <hr />
+          <br />
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold mb-4 dark:text-white text-center">
+            Book Ride by Pickup Location
+          </h1>
+          {Object.keys(groupedRides).length > 0 ? (
+            Object.entries(groupedRides).map(([location, rides]) => (
+              <div key={location} className="mb-6">
+                <h2
+                  className="text-xl font-bold mb-2 cursor-pointer"
+                  onClick={() => handleRideGroupToggle(location)} // Toggle ride cards on click
+                >
+                  {location}{" "}
+                  {expandedRideGroup === location ? "▲" : "▼"}{" "}
+                  {/* Add toggle icon */}
+                </h2>
+                {expandedRideGroup === location && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {rides.map((ride) => (
+                      <RideCard key={ride.id} ride={ride} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))
+          ) : (
+            <p>No pending rides available yet.</p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

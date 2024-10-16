@@ -9,11 +9,13 @@ import HomePageNotLoggedIn from "../pages/HomePageNotLoggedIn";
 import Footer from "./Footer";
 import VehicleRegistrationForm from "../pages/VehicleRegistrationForm";
 import UserDashboard from "../pages/UserDashboard";
+import VehicleDetails from "./VehicleDetails";
 
 function App() {
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
-  const [rides, setRides] = useState([]);
+  const [vehicle, setVehicles] = useState([]);
+ 
 
   const toggleDarkMode = () => {
     setDarkMode((prevMode) => !prevMode); // Simply toggle the dark mode state
@@ -27,13 +29,6 @@ function App() {
     });
   }, []);
 
-  // useEffect(() => {
-  //   fetch("/rides").then((r) => {
-  //     if (r.ok) {
-  //       r.json().then((data) => setRides(data));
-  //     }
-  //   });
-  // }, []);
 
   return (
     <div className={darkMode ? "dark" : ""}>
@@ -58,10 +53,12 @@ function App() {
                     path="/vehicle-registration"
                     element={<VehicleRegistrationForm />}
                   />
-                  <Route path="/rides" element={<Rides rides={rides} />} />
+                  <Route path="/rides" element={<Rides />} />
                 </>
               )}
               <Route path="/userdashboard" element={<UserDashboard user={user} />} />
+              <Route path="/userdashboard/vehicles/:id" element={<VehicleDetails vehicle={vehicle} />} />
+
             </>
           ) : (
             <>

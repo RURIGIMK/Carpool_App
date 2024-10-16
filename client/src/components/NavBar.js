@@ -27,7 +27,7 @@ function NavBar({ user, setUser, toggleDarkMode, darkMode }) {
   }
 
   return (
-    <header className="bg-white p-4 flex items-center justify-between shadow-md fixed top-0 w-full h-20 z-50 dark:bg-gray-800">
+    <header className="bg-white p-4 flex items-center justify-between shadow-md fixed top-0 w-full h-50 z-50 dark:bg-gray-800">
       <div className="flex items-center space-x-2">
         <Link
           to={user && user.is_driver ? "/driverdashboard" : "/userdashboard"} // Check if user exists before accessing is_driver

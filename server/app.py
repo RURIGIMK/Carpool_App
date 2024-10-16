@@ -194,7 +194,8 @@ class UserResource(Resource):
                 email=data['email'],
                 phone_number=data.get('phone_number'),
                 password_hash=data['password'],
-                is_driver=data.get('is_driver', False)
+                is_driver=data.get('is_driver', False),
+                image=data.get('image')
             )
             db.session.add(user)
             db.session.commit()
@@ -394,7 +395,8 @@ class VehicleResource(Resource):
             plate_number=data['plate_number'],
             seating_capacity=data['seating_capacity'],
             sacco=data.get('sacco'),
-            user_id=session.get('user_id')  # Assuming user_id is stored in the session
+            user_id=session.get('user_id'),
+            image=data.get('image')
         )
         db.session.add(vehicle)
         db.session.commit()
@@ -424,7 +426,7 @@ class VehicleResourceById(Resource):
 
 
 
-# Review Resource
+# Review Resources
 class ReviewResource(Resource):
     def get(self, review_id=None):
         if review_id:
@@ -433,6 +435,12 @@ class ReviewResource(Resource):
         else:
             reviews = Review.query.all()
             return jsonify([review.to_dict() for review in reviews])
+        
+    def get_reviews_by_user(self, user_id):
+        # Fetch reviews associated with the user
+        reviews = Review.query.filter_by(user_id=user_id).all()
+        return jsonify([review.to_dict() for review in reviews])
+
 
     def post(self):
         data = request.get_json()
@@ -466,7 +474,14 @@ class ReviewResourceById(Resource):
         db.session.delete(review)
         db.session.commit()
         return '', 204
-
+    
+class UserReviewResource(Resource):
+    def get(self, user_id):
+        # Fetch reviews for the specified user
+        reviews = Review.query.filter_by(user_id=user_id).all()
+        return jsonify([review.to_dict() for review in reviews])
+    
+api.add_resource(UserReviewResource, '/users/<int:user_id>/reviews', endpoint='user_reviews')
 
 # Admin Resource
 class AdminResource(Resource):
@@ -535,6 +550,7 @@ api.add_resource(VehicleResourceById, '/vehicles/<int:vehicle_id>', endpoint='/v
 
 api.add_resource(ReviewResource, '/reviews', endpoint='/reviews')
 api.add_resource(ReviewResourceById, '/reviews/<int:review_id>', endpoint='/reviews/<int:review_id>')
+api.add_resource(ReviewResource, '/users/<int:user_id>/reviews', endpoint='/users/<int:user_id>/reviews')
 
 api.add_resource(AdminResource, '/admins', endpoint='/admins')
 api.add_resource(AdminResourceById, '/admins/<int:admin_id>', endpoint='/admins/<int:admin_id>')
