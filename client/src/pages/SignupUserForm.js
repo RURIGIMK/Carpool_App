@@ -141,7 +141,7 @@ function SignupUserForm({ setUser }) {
               htmlFor="isDriver"
               className="block text-gray-700 font-semibold mb-2 mr-14"
             >
-              Sign up as driver
+              Sign up as a driver?
             </label>
             {!isDriverSelected && (
               <select
@@ -165,7 +165,7 @@ function SignupUserForm({ setUser }) {
           >
             Sign Up
           </button>
-
+         
           <p className="mt-4 text-center">
             Already have an account? &nbsp;
             <Link to="/login">

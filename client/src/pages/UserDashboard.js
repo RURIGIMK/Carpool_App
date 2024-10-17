@@ -76,81 +76,83 @@ function UserDashboard({ user }) {
   };
 
   return (
-    <div className="flex mt-20 dark:bg-gray-900 h-auto">
-      <aside className="w-64 bg-gray-800 text-white p-4">
-        <h2 className="text-xl font-bold">User Dashboard</h2>
-        <ul className="mt-4">
-          <li>
-            <Link to="/rides" className="block py-2 hover:bg-gray-700">
-              My Rides
-            </Link>
-          </li>
-          <li>
-            <Link to="/bookings" className="block py-2 hover:bg-gray-700">
-              My Bookings
-            </Link>
-          </li>
-        </ul>
-      </aside>
-      <div className="flex-1 p-4 bg-gray-100 dark:bg-gray-900 h-auto">
-        <h1 className="text-2xl font-bold mb-4 dark:text-white text-center">
-          Book Ride by Seating Capacity
-        </h1>
-        {error && <p className="text-red-500">{error}</p>}{" "}
-        {/* Display error message */}
-        {Object.keys(groupedVehicles).length > 0 ? (
-          Object.entries(groupedVehicles).map(([capacity, vehicles]) => (
-            <div key={capacity} className="mb-6">
-              <h2
-                className="text-xl font-bold mb-2 cursor-pointer"
-                onClick={() => handleGroupToggle(capacity)} // Toggle vehicle cards on click
-              >
-                Seating Capacity: {capacity}{" "}
-                {expandedGroup === capacity ? "▲" : "▼"} {/* Add toggle icon */}
-              </h2>
-              {expandedGroup === capacity && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {vehicles.map((vehicle) => (
-                    <VehicleCard key={vehicle.id} vehicle={vehicle} /> // Use VehicleCard for each vehicle
-                  ))}
-                </div>
-              )}
-            </div>
-          ))
-        ) : (
-          <p>No vehicles registered yet.</p>
-        )}
-        <div>
-          <hr />
-          <br />
-        </div>
-        <div>
+    <div className="flex-col dark:bg-gray-900 min-h-screen">
+      <div className='flex flex-1 h-auto'>
+        <aside className="w-64 bg-gray-800 text-white p-4 flex-col min-h-screen text-center pt-20">
+          <h2 className="text-xl font-bold">User Dashboard</h2>
+          <ul className="mt-4">
+            <li>
+              <Link to="/rides" className="block py-2 hover:bg-gray-700">
+                My Rides
+              </Link>
+            </li>
+            <li>
+              <Link to="/bookings" className="block py-2 hover:bg-gray-700">
+                My Bookings
+              </Link>
+            </li>
+          </ul>
+        </aside>
+        <div className="flex-1 p-4 bg-gray-100 dark:bg-gray-900 h-auto pt-20">
           <h1 className="text-2xl font-bold mb-4 dark:text-white text-center">
-            Book Ride by Pickup Location
+            Book Ride by Seating Capacity
           </h1>
-          {Object.keys(groupedRides).length > 0 ? (
-            Object.entries(groupedRides).map(([location, rides]) => (
-              <div key={location} className="mb-6">
+          {error && <p className="text-red-500">{error}</p>}{" "}
+          {/* Display error message */}
+          {Object.keys(groupedVehicles).length > 0 ? (
+            Object.entries(groupedVehicles).map(([capacity, vehicles]) => (
+              <div key={capacity} className="mb-6">
                 <h2
                   className="text-xl font-bold mb-2 cursor-pointer"
-                  onClick={() => handleRideGroupToggle(location)} // Toggle ride cards on click
+                  onClick={() => handleGroupToggle(capacity)} // Toggle vehicle cards on click
                 >
-                  {location}{" "}
-                  {expandedRideGroup === location ? "▲" : "▼"}{" "}
+                  Seating Capacity: {capacity}{" "}
+                  {expandedGroup === capacity ? "▲" : "▼"}{" "}
                   {/* Add toggle icon */}
                 </h2>
-                {expandedRideGroup === location && (
+                {expandedGroup === capacity && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {rides.map((ride) => (
-                      <RideCard key={ride.id} ride={ride} />
+                    {vehicles.map((vehicle) => (
+                      <VehicleCard key={vehicle.id} vehicle={vehicle} /> // Use VehicleCard for each vehicle
                     ))}
                   </div>
                 )}
               </div>
             ))
           ) : (
-            <p>No pending rides available yet.</p>
+            <p>No vehicles registered yet.</p>
           )}
+          <div>
+            <hr />
+            <br />
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold mb-4 dark:text-white text-center">
+              Book Ride by Pickup Location
+            </h1>
+            {Object.keys(groupedRides).length > 0 ? (
+              Object.entries(groupedRides).map(([location, rides]) => (
+                <div key={location} className="mb-6">
+                  <h2
+                    className="text-xl font-bold mb-2 cursor-pointer"
+                    onClick={() => handleRideGroupToggle(location)} // Toggle ride cards on click
+                  >
+                    {location} {expandedRideGroup === location ? "▲" : "▼"}{" "}
+                    {/* Add toggle icon */}
+                  </h2>
+                  {expandedRideGroup === location && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {rides.map((ride) => (
+                        <RideCard key={ride.id} ride={ride} />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p>No pending rides available yet.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>
