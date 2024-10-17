@@ -5,7 +5,6 @@ function Login({ setUser }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState(""); // State to manage error messages
-
   const navigate = useNavigate();
 
   function handleSubmit(e) {
@@ -22,9 +21,11 @@ function Login({ setUser }) {
         if (response.ok) {
           response.json().then((user) => {
             setUser(user);
-            console.log(user)
             setError(""); // Clear error message on successful login
-            if (user.is_driver) {
+            // Redirect based on user role
+            if (user.username === "admin") {
+              navigate("/admindashboard"); // Redirect to Admin Dashboard
+            } else if (user.is_driver) {
               navigate("/driverdashboard"); // Redirect to Driver Dashboard
             } else {
               navigate("/userdashboard"); // Redirect to User Dashboard
@@ -32,13 +33,12 @@ function Login({ setUser }) {
           });
         } else {
           response.json().then((errorData) => {
-            // Improved error handling based on the response
             setError(errorData.message || "Login failed. Please try again.");
           });
         }
       })
       .catch(() => {
-        setError("Network error. Please check your connection and try again."); // Handle network errors
+        setError("Network error. Please check your connection and try again.");
       });
   }
 
@@ -50,9 +50,7 @@ function Login({ setUser }) {
             Login
           </h1>
 
-          {error && (
-            <p className="text-red-500 text-center mb-4">{error}</p> // Display error message
-          )}
+          {error && <p className="text-red-500 text-center mb-4">{error}</p>}
 
           <div className="mb-4">
             <label

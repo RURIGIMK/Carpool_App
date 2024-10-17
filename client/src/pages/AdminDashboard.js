@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import VehicleCard from "../components/VehicleCard";
 import RideCard from "../components/RideCard";
 
-function UserDashboard({ user }) {
+function AdminDashboard({ user }) {
   const [vehicles, setVehicles] = useState([]); // State to hold vehicles
   const [rides, setRides] = useState([]); // State to hold rides
   const [error, setError] = useState(""); // State for error messages
@@ -79,7 +79,7 @@ function UserDashboard({ user }) {
     <div className="flex-col dark:bg-gray-900 min-h-screen">
       <div className='flex flex-1 h-auto'>
         <aside className="w-64 bg-gray-800 text-white p-4 flex-col min-h-screen text-center pt-20">
-          <h2 className="text-xl font-bold">User Dashboard</h2>
+          <h2 className="text-xl font-bold">Admin Dashboard</h2>
           <ul className="mt-4">
             <li>
               <Link to="/rides" className="block py-2 hover:bg-gray-700">
@@ -126,7 +126,7 @@ function UserDashboard({ user }) {
             <hr />
             <br />
           </div>
-          <div className="dark:text-white">
+          <div>
             <h1 className="text-2xl font-bold mb-4 dark:text-white text-center">
               Book Ride by Pickup Location
             </h1>
@@ -159,4 +159,4 @@ function UserDashboard({ user }) {
   );
 }
 
-export default UserDashboard;
+export default AdminDashboard;

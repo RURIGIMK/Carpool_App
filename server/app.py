@@ -24,7 +24,7 @@ class CheckSession(Resource):
         if admin_id:
             admin = Admin.query.get(admin_id)
             if admin:
-                return jsonify(admin.to_dict()), 200
+                return make_response(jsonify(admin.to_dict()), 200)
 
         # If no valid session found
         return {"message": "No user logged in"}, 401
