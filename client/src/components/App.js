@@ -10,8 +10,10 @@ import Footer from "./Footer";
 import VehicleRegistrationForm from "../pages/VehicleRegistrationForm";
 import UserDashboard from "../pages/UserDashboard";
 import VehicleDetails from "./VehicleDetails";
+import AdminDashboard from "../pages/admindashboard";
 import YourBookedVehicles from "../pages/YourBookedVehicles";
 
+ 
 
 function App() {
   const [user, setUser] = useState(null);
@@ -68,6 +70,11 @@ function App() {
                 </>
               )}
               <Route path="/userdashboard" element={<UserDashboard user={user} />} />
+ 
+              <Route path="/userdashboard/vehicles/:id" element={<VehicleDetails vehicle={vehicle} />} />
+              <Route path="admindashboard" element={<AdminDashboard user={user} /> } />
+
+
               <Route path="/userdashboard/vehicles/:id" element={<VehicleDetails onAddToBookedVehicles={onAddToBookedVehicles} />} />
               <Route
                 path="/vehicles/your-vehicles"
