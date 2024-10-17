@@ -277,7 +277,11 @@ class RideResource(Resource):
             ride = Ride.query.get_or_404(ride_id)
             return jsonify(ride.to_dict())
         else:
-            rides = Ride.query.all()
+            driver_id = request.args.get('driver_id')
+            if driver_id:
+                rides = Ride.query.filter_by(driver_id=driver_id, ride_status='pending').all()
+            else:
+                rides = Ride.query.filter_by(ride_status='pending').all()
             return jsonify([ride.to_dict() for ride in rides])
 
     def post(self):
@@ -299,10 +303,20 @@ class RideResource(Resource):
 
 
 class RideResourceById(Resource):
-    def get(self, ride_id):
-        ride = Ride.query.get_or_404(ride_id)
-        return jsonify(ride.to_dict())
+    def get(self, ride_id=None):
+        if ride_id:
+            # Fetch a specific ride by its ID
+            ride = Ride.query.get_or_404(ride_id)
+            return jsonify(ride.to_dict())
+        else:
+            # This part now handles the request for rides with a specific status
+            return self.get_pending_rides()
     
+    def get_pending_rides(self):
+        # Fetch all pending rides
+        rides = Ride.query.filter_by(ride_status='pending').all()
+        return jsonify([ride.to_dict() for ride in rides])
+
     def patch(self, ride_id):
         ride = Ride.query.get_or_404(ride_id)
         data = request.get_json()
