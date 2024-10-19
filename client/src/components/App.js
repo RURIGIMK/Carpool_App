@@ -12,6 +12,7 @@ import UserDashboard from "../pages/UserDashboard";
 import VehicleDetails from "./VehicleDetails";
 import AdminDashboard from "../pages/AdminDashboard";
 import YourBookedVehicles from "../pages/YourBookedVehicles";
+import RideDetails from "./RideDetails"; // Import the new RideDetails component
 
 function App() {
   const [user, setUser] = useState(null);
@@ -20,7 +21,7 @@ function App() {
   const [bookedVehicles, setBookedVehicles] = useState([]);
 
   const toggleDarkMode = () => {
-    setDarkMode((prevMode) => !prevMode); // Simply toggle the dark mode state
+    setDarkMode((prevMode) => !prevMode);
   };
 
   useEffect(() => {
@@ -86,6 +87,11 @@ function App() {
               <Route
                 path="/vehicles/your-vehicles"
                 element={<YourBookedVehicles booked={bookedVehicles} />}
+              />
+              {/* New RideDetails route */}
+              <Route
+                path="/userdashboard/rides/:rideId"
+                element={<RideDetails />}
               />
             </>
           ) : (

@@ -11,6 +11,6 @@
 @layer utilities {
   .bg-custom-image-0 {
     @apply w-full;
-    background-image: url('/root/sdpt-06/labs/phase-05/Carpool_App/client/src/images/pexels-peterfazekas-1386649.jpg');
+    background-image: url('/home/rurigi/PROJECTS/Carpool_App/client/src/images/pexels-peterfazekas-1386649.jpg');
   }
 }

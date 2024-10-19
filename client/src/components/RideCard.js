@@ -1,6 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
-function RideCard({ ride}) {
+function RideCard({ ride }) {
   return (
     <div>
       <div key={ride.id} className="p-4 bg-white shadow rounded-lg">
@@ -17,12 +18,12 @@ function RideCard({ ride}) {
         <p>
           <strong>Status:</strong> {ride.ride_status}
         </p>
-        <button
-          type="button"
-          className="w-full sm:w-32 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-800 transition-colors shadow-sm mt-3"
+        <Link
+          to={`/userdashboard/rides/${ride.id}`} // Ensure this path matches the route in App.js
+          className="w-full sm:w-32 bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-800 transition-colors shadow-sm mt-3 inline-block text-center"
         >
           View details
-        </button>
+        </Link>
       </div>
     </div>
   );
